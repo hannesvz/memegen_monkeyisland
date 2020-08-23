@@ -20,23 +20,34 @@ exports.handler = (event, context, cb1) => {
 
 	const f = font.font; // read font coords from external json file
 
+	const default_text = 'You fight like a dairy farmer.';
+
 	let inputstring;
 
+	// if nothing is passed, make it the default string.
 	if (!event.pathParameters) {
-		inputstring = 'You fight like a dairy farmer. ';
+		inputstring = default_text;
 	}
+	// otherwise, add the initial string which may or may not include an image.png trailing uri
 	else {
-		inputstring = querystring.unescape(event.pathParameters.proxy) + ' ';
+		inputstring = querystring.unescape(event.pathParameters.proxy);
 		inputstring = inputstring.slice(0, 140);
 	}
 
-	console.log(inputstring);
+	// match only text that comes before the first forward slash
+	inputstring = inputstring.match(/([^\/\n]+)/)[1];
+
+	// if only an image.png-like uri is passed, strip it off and make the input string the default
+	if (inputstring.match(/^([^\/\n]+\.png)$/)) {
+		inputstring = default_text;
+	}
+
+	// pad with string - used later in word wrapping algo
+	inputstring = inputstring + ' ';
 
 	var heightoffset = Math.floor(inputstring.length / 40);
 
 	py -= (heightoffset * leading);
-
-	inputstring = inputstring + ' '; // pad with string - used later in word wrapping algo
 
 	var is = inputstring.split('');
 
